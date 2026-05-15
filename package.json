@@ -1,11 +1,19 @@
 {
   "name": "api-moodmate",
   "version": "1.0.0",
+  "type": "module",
   "description": "backend moodmate",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "node-pg-migrate -m database/migrations",
+    "migrate:up": "npm run migrate -- up",
+    "migrate:down": "npm run migrate -- down"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "node-pg-migrate": "^8.0.4"
+  }
 }
