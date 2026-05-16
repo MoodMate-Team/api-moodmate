@@ -17,7 +17,7 @@ export const up = (pgm) => {
       references: '"users"', 
       onDelete: 'cascade' 
     },
-    mood_score: { type: 'integer', check: 'mood_score >= 1 AND mood_score <= 5' },
+    mood_score: { type: 'integer', check: 'mood_score >= 0 AND mood_score <= 5' },
     journal_text: { type: 'text' },
     emotion_label: { type: 'varchar(50)' },
     created_at: { type: 'timestamp', notNull: true, default: pgm.func('current_timestamp') },
