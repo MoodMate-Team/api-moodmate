@@ -16,3 +16,5 @@ pool.connect()
     console.error('Gagal terhubung ke database:', err.message);
     process.exit(1); 
   });
+
+  export default app;
