@@ -7,5 +7,6 @@ const router = express.Router();
 
 router.get('/me', requireAuth, userController.getProfile);
 router.put('/me', requireAuth, uploadAvatar.single('avatar'), userController.updateProfile);
+router.post('/logout', requireAuth, userController.logoutUser);
 
 export default router;
