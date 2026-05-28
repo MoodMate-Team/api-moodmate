@@ -65,7 +65,7 @@ export const logoutUser = async (req, res, next) => {
   try {
     res.status(200).json({
       status: 'success',
-      message: 'Berhasil logout. Silakan hapus token di sisi klien.'
+      message: 'Berhasil logout.'
     });
   } catch (error) {
     next(error);

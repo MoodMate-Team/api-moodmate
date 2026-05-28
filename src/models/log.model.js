@@ -23,7 +23,8 @@ export const getMonthlyLogs = async (userId, month, year) => {
   const query = `
     SELECT 
       DATE(created_at) as log_date, 
-      mood_score 
+      mood_score
+      -- Hanya ambil data penting, buang journal_text agar payload ringan
     FROM daily_logs 
     WHERE user_id = $1 
       AND EXTRACT(MONTH FROM created_at) = $2 

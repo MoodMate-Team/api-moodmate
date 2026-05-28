@@ -44,9 +44,11 @@ export const getTodayStatus = async (req, res, next) => {
 export const getCalendarLogs = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const today = new Date();
-    const month = req.query.month || (today.getMonth() + 1); 
-    const year = req.query.year || today.getFullYear();
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      throw new InvariantError('Parameter bulan (month) dan tahun (year) wajib diisi. Contoh: ?month=5&year=2026');
+    }
 
     const logs = await logModel.getMonthlyLogs(userId, month, year);
 
