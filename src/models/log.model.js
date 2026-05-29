@@ -13,7 +13,8 @@ export const createDailyLog = async (userId, moodScore, journalText) => {
 export const checkLogToday = async (userId) => {
   const query = `
     SELECT * FROM daily_logs 
-    WHERE user_id = $1 AND DATE(created_at) = CURRENT_DATE;
+    WHERE user_id = $1 
+      AND (created_at AT TIME ZONE 'Asia/Jakarta')::date = (CURRENT_DATE AT TIME ZONE 'Asia/Jakarta')::date;
   `;
   const result = await pool.query(query, [userId]);
   return result.rows[0];
@@ -22,13 +23,12 @@ export const checkLogToday = async (userId) => {
 export const getMonthlyLogs = async (userId, month, year) => {
   const query = `
     SELECT 
-      DATE(created_at) as log_date, 
+      (created_at AT TIME ZONE 'Asia/Jakarta')::date as log_date, 
       mood_score
-      -- Hanya ambil data penting, buang journal_text agar payload ringan
     FROM daily_logs 
     WHERE user_id = $1 
-      AND EXTRACT(MONTH FROM created_at) = $2 
-      AND EXTRACT(YEAR FROM created_at) = $3
+      AND EXTRACT(MONTH FROM created_at AT TIME ZONE 'Asia/Jakarta') = $2 
+      AND EXTRACT(YEAR FROM created_at AT TIME ZONE 'Asia/Jakarta') = $3
     ORDER BY created_at ASC;
   `;
   const result = await pool.query(query, [userId, month, year]);

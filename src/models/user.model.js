@@ -48,11 +48,11 @@ export const updateUserStreak = async (userId) => {
     SET 
       current_streak = CASE 
         WHEN last_checkin_date IS NULL THEN 1
-        WHEN last_checkin_date = CURRENT_DATE - INTERVAL '1 day' THEN current_streak + 1
-        WHEN last_checkin_date = CURRENT_DATE THEN current_streak
+        WHEN last_checkin_date = (CURRENT_DATE - INTERVAL '1 day') AT TIME ZONE 'Asia/Jakarta' THEN current_streak + 1
+        WHEN last_checkin_date = CURRENT_DATE AT TIME ZONE 'Asia/Jakarta' THEN current_streak
         ELSE 1
       END,
-      last_checkin_date = CURRENT_DATE,
+      last_checkin_date = CURRENT_DATE AT TIME ZONE 'Asia/Jakarta',
       updated_at = NOW()
     WHERE id = $1
     RETURNING current_streak, last_checkin_date;
