@@ -29,7 +29,6 @@ const query = `SELECT * FROM users WHERE id = $1;`;
 };
 
 export const updateUserProfile = async (userId, name, avatarUrl) => {
-  // COALESCE digunakan agar jika parameter nilainya null, data lama di database tidak tertimpa
   const query = `
     UPDATE users 
     SET 
@@ -40,5 +39,24 @@ export const updateUserProfile = async (userId, name, avatarUrl) => {
     RETURNING id, name, email, avatar_url;
   `;
   const result = await pool.query(query, [name, avatarUrl, userId]);
+  return result.rows[0];
+};
+
+export const updateUserStreak = async (userId) => {
+  const query = `
+    UPDATE users 
+    SET 
+      current_streak = CASE 
+        WHEN last_checkin_date IS NULL THEN 1
+        WHEN last_checkin_date = CURRENT_DATE - INTERVAL '1 day' THEN current_streak + 1
+        WHEN last_checkin_date = CURRENT_DATE THEN current_streak
+        ELSE 1
+      END,
+      last_checkin_date = CURRENT_DATE,
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING current_streak, last_checkin_date;
+  `;
+  const result = await pool.query(query, [userId]);
   return result.rows[0];
 };

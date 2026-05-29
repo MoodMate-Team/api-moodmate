@@ -1,20 +1,35 @@
 import * as dashboardModel from '../models/dashboard.model.js';
 import * as userModel from '../models/user.model.js';
+import * as logModel from '../models/log.model.js';
+import * as geminiService from '../services/gemini.service.js';
 
 export const getSummary = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const [stats, user] = await Promise.all([
+    const [stats, user, recentLogs] = await Promise.all([
       dashboardModel.getDashboardStats(userId),
-      userModel.findUserById(userId)
+      userModel.findUserById(userId),
+      logModel.getRecentEmotionTrend(userId, 5)
     ]);
-    let moodLabel = "Neutral";
-    if (stats.averageMood >= 4) moodLabel = "Great";
-    else if (stats.averageMood >= 3) moodLabel = "Good";
-    else if (stats.averageMood >= 2) moodLabel = "Content";
-    else if (stats.averageMood >= 1) moodLabel = "Down";
-    else if (stats.averageMood > 0) moodLabel = "Low";
-    else if (stats.totalCheckins === 0) moodLabel = "No Data";
+    
+    let moodLabel = "Tidak ada data";
+    if (stats.totalCheckins > 0) {
+      if (stats.averageMood >= 4) moodLabel = "Sangat senang";
+      else if (stats.averageMood >= 3) moodLabel = "Senang";
+      else if (stats.averageMood >= 2) moodLabel = "Netral";
+      else if (stats.averageMood >= 1) moodLabel = "Sedih";
+      else moodLabel = "Sangat sedih";
+    }
+
+    const recentEmotionTrend = recentLogs.length > 0
+      ? recentLogs.map(l => l.emotion_label || ['sangat sedih', 'sedih', 'down', 'netral', 'senang', 'sangat senang'][l.mood_score]).join(', ')
+      : 'baru memulai';
+
+    const aiInsight = await geminiService.generateDashboardInsight(
+      stats.totalCheckins, 
+      stats.averageMood, 
+      recentEmotionTrend
+    );
 
     res.status(200).json({
       status: 'success',
@@ -24,6 +39,7 @@ export const getSummary = async (req, res, next) => {
         average_mood_score: stats.averageMood,
         average_mood_label: moodLabel,
         current_streak: user.current_streak || 0,
+        recent_insight: aiInsight
       }
     });
   } catch (error) {

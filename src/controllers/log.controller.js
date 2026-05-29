@@ -1,5 +1,7 @@
 // src/controllers/log.controller.js
 import * as logModel from '../models/log.model.js';
+import * as userModel from '../models/user.model.js';
+import * as geminiService from '../services/gemini.service.js';
 import InvariantError from '../exceptions/InvariantError.js';
 import NotFoundError from '../exceptions/NotFoundError.js';
 
@@ -13,11 +15,17 @@ export const createLog = async (req, res, next) => {
     }
 
     const newLog = await logModel.createDailyLog(userId, mood_score, journal_text);
+    const streakResult = await userModel.updateUserStreak(userId);
+    const suggestion = await geminiService.generateDailySuggestion(mood_score, journal_text);
 
     res.status(201).json({
       status: 'success',
       message: 'Jurnal harian berhasil disimpan!',
-      data: { log: newLog },
+      data: { 
+        log: newLog,
+        suggestion,
+        streak: streakResult.current_streak
+      },
     });
   } catch (error) {
     next(error);

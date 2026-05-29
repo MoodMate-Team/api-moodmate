@@ -1,4 +1,5 @@
 import * as insightModel from '../models/insight.model.js';
+import * as geminiService from '../services/gemini.service.js';
 
 export const getWeeklyInsights = async (req, res, next) => {
   try {
@@ -15,21 +16,27 @@ export const getWeeklyInsights = async (req, res, next) => {
       score: parseFloat(item.avg_score)
     }));
 
-    const fallbackEmotionDistribution = emotionData.length > 0 ? emotionData : [
-      { emotion: "Calm", count: 4 },
-      { emotion: "Content", count: 3 },
-      { emotion: "Anxious", count: 2 },
-      { emotion: "Tired", count: 1 }
-    ];
+    const emotionDistribution = emotionData.length > 0 
+      ? emotionData.map(e => ({
+          emotion: e.emotion_label,
+          count: e.count
+        }))
+      : [];
+
+    const avgScore = formattedTrend.length > 0 
+      ? formattedTrend.reduce((sum, t) => sum + t.score, 0) / formattedTrend.length 
+      : 0;
+
+    const aiSummary = await geminiService.generateWeeklySummary(avgScore, emotionDistribution);
 
     res.status(200).json({
       status: 'success',
       data: {
         mood_trend: formattedTrend,
-        emotion_distribution: fallbackEmotionDistribution,
+        emotion_distribution: emotionDistribution,
         summary: {
-          text: "A steady week with calm as your dominant state. A brief dip mid-week may relate to your Wednesday workload. Your overall trend points gently upward.",
-          suggestion: "protect a short walk in the afternoon."
+          text: aiSummary,
+          suggestion: "Terus jaga konsistensi track mood untuk insight yang lebih baik."
         }
       }
     });

@@ -100,3 +100,15 @@ export const countJournalHistory = async (userId, month, year) => {
   ]);
   return parseInt(result.rows[0].count, 10);
 };
+
+export const getRecentEmotionTrend = async (userId, limit = 5) => {
+  const query = `
+    SELECT mood_score, emotion_label, created_at
+    FROM daily_logs
+    WHERE user_id = $1
+    ORDER BY created_at DESC
+    LIMIT $2;
+  `;
+  const result = await pool.query(query, [userId, limit]);
+  return result.rows;
+};
